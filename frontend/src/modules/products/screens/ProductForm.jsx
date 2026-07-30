@@ -37,7 +37,9 @@ export default function ProductForm() {
     listCategories({ limit: 100 })
       .then(({ data }) => setCategories(data))
       .catch(() => {});
-    listSuppliers().then(setSuppliers).catch(() => {});
+    listSuppliers({ limit: 100 })
+      .then(({ data }) => setSuppliers(data))
+      .catch(() => {});
   }, []);
 
   useEffect(() => {

@@ -1,10 +1,13 @@
 const pool = require('../../config/db');
 const ApiError = require('../../shared/errors/ApiError');
+const { parsePagination } = require('../../shared/utils/pagination');
 const repository = require('./suppliers.repository');
 
 async function listSuppliers(query) {
   const status = query.status === undefined ? undefined : query.status === 'true';
-  return repository.findAll(pool, { status });
+  const { page, limit, offset } = parsePagination(query);
+  const { rows, total } = await repository.findAll(pool, { status, limit, offset });
+  return { rows, meta: { total, page, limit } };
 }
 
 async function getSupplier(id) {
@@ -14,6 +17,9 @@ async function getSupplier(id) {
 }
 
 async function createSupplier(data) {
+  const existingSuppliers = await repository.findByName(pool, data.contact_name);
+  console.log(existingSuppliers)
+  if(existingSuppliers.length > 0) throw ApiError.conflict('El proveedor ya existe');
   return repository.create(pool, data);
 }
 

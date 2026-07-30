@@ -24,7 +24,9 @@ export default function NewPurchaseForm() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    listSuppliers({ status: 'true' }).then(setSuppliers).catch(() => {});
+    listSuppliers({ status: 'true', limit: 100 })
+      .then(({ data }) => setSuppliers(data))
+      .catch(() => {});
     listProducts({ status: 'true', limit: 100 })
       .then(({ data }) => setProducts(data))
       .catch(() => {});

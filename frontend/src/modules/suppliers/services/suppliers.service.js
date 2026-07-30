@@ -1,7 +1,7 @@
 import apiClient from '@shared/services/apiClient';
 
 export function listSuppliers(params) {
-  return apiClient.get('/suppliers', { params }).then((r) => r.data.data);
+  return apiClient.get('/suppliers', { params }).then((r) => r.data);
 }
 
 export function getSupplier(id) {

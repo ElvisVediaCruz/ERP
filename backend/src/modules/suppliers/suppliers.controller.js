@@ -2,8 +2,8 @@ const asyncHandler = require('../../shared/utils/asyncHandler');
 const service = require('./suppliers.service');
 
 const list = asyncHandler(async (req, res) => {
-  const data = await service.listSuppliers(req.query);
-  res.json({ data });
+  const { rows, meta } = await service.listSuppliers(req.query);
+  res.json({ data: rows, meta });
 });
 
 const getById = asyncHandler(async (req, res) => {
