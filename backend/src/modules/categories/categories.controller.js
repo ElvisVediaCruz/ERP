@@ -2,8 +2,8 @@ const asyncHandler = require('../../shared/utils/asyncHandler');
 const service = require('./categories.service');
 
 const list = asyncHandler(async (req, res) => {
-  const data = await service.listCategories(req.query);
-  res.json({ data });
+  const { rows, meta } = await service.listCategories(req.query);
+  res.json({ data: rows, meta });
 });
 
 const getById = asyncHandler(async (req, res) => {
@@ -29,4 +29,9 @@ const remove = asyncHandler(async (req, res) => {
   res.status(204).send();
 });
 
-module.exports = { list, getById, create, update, remove };
+const updateStatus = asyncHandler(async (req, res) => {
+  await service.updateCategoryStatus(req.params.id, req.body.status);
+  res.status(204).send();
+});
+
+module.exports = { list, getById, create, update, remove, updateStatus };

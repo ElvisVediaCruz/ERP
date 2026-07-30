@@ -1,16 +1,25 @@
-async function findAll(db, { status } = {}) {
+const atributes = ['id', 'name', 'description', 'status'];
+
+async function findAll(db, { status, limit, offset } = {}) {
   if (status === undefined) {
-    const [rows] = await db.execute('SELECT * FROM categories ORDER BY name');
-    return rows;
+    const [rows] = await db.query(
+      `SELECT ${atributes}
+      FROM categories ORDER BY name LIMIT ? OFFSET ?`, [limit, offset]);
+    const [countRows] = await db.execute('SELECT COUNT(*) AS total FROM categories');
+    return { rows, total: countRows[0].total };
   }
-  const [rows] = await db.execute(
-    'SELECT * FROM categories WHERE status = ? ORDER BY name',
+  const [rows] = await db.query(
+    `SELECT ${atributes} FROM categories WHERE status = ? ORDER BY name LIMIT ? OFFSET ?`,
+    [status, limit, offset]
+  );
+  const [countRows] = await db.execute(
+    'SELECT COUNT(*) AS total FROM categories WHERE status = ?',
     [status]
   );
-  return rows;
+  return { rows, total: countRows[0].total };
 }
 
-async function findCategories(db, id){
+async function findOtherCategories(db, id){
   const [rows] = await db.execute('select id, name from categories where id <> ?', [id]);
   return rows;
 }
@@ -35,30 +44,39 @@ async function create(db, { name, description }) {
 
 async function update(db, id, { name, description }) {
   await db.execute(
-    'UPDATE categories SET name = ?, description = ? WHERE id = ?',
-    [name, description ?? null, id]
+    `UPDATE categories 
+    SET name = ?, description = ?, updated_at = now()
+    WHERE id = ?
+    AND (
+      name <> ? OR description <> ?)`,
+    [name, description, id, name, description]
   );
   return findById(db, id);
 }
 
-async function softDelete(db, id) {
-  const [result] = await db.execute('UPDATE categories SET status = FALSE WHERE id = ?', [id]);
+async function updateStatus(db, id, status){
+  const [result] = await db.execute(`UPDATE categories SET status = ?, updated_at = now() WHERE id = ?`, [status, id]);
   return result.affectedRows === 1;
 }
 
-async function categorieDelete(db, id){
+async function remove(db, id){
   const [result] = await db.execute('DELETE FROM categories WHERE id = ?', [id]);
   return result.affectedRows === 1;
 }
 
+async function findByName(db, name){
+  const [rows] = await db.execute('SELECT id FROM categories WHERE name = ?', [name]);
+  return rows;
+}
 
-module.exports = { 
+module.exports = {
   findAll,
-  findCategories,
-  findById, 
-  exists, 
-  create, 
-  update, 
-  softDelete,
-  categorieDelete
+  findOtherCategories,
+  findById,
+  findByName,
+  exists,
+  create,
+  update,
+  updateStatus,
+  remove
 };

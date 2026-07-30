@@ -34,7 +34,9 @@ export default function ProductForm() {
   const [loading, setLoading] = useState(isEdit);
 
   useEffect(() => {
-    listCategories().then(setCategories).catch(() => {});
+    listCategories({ limit: 100 })
+      .then(({ data }) => setCategories(data))
+      .catch(() => {});
     listSuppliers().then(setSuppliers).catch(() => {});
   }, []);
 

@@ -1,11 +1,14 @@
 const pool = require('../../config/db');
 const ApiError = require('../../shared/errors/ApiError');
+const { parsePagination } = require('../../shared/utils/pagination');
 const repository = require('./categories.repository');
 const { findByCategorie } = require('../products/products.repository')
 
 async function listCategories(query) {
   const status = query.status === undefined ? undefined : query.status === 'true';
-  return repository.findAll(pool, { status });
+  const { page, limit, offset } = parsePagination(query);
+  const { rows, total } = await repository.findAll(pool, { status, limit, offset });
+  return { rows, meta: { total, page, limit } };
 }
 
 async function getCategory(id) {
@@ -16,6 +19,11 @@ async function getCategory(id) {
 
 
 async function createCategory(data) {
+  //buscar si ya existe la categoria con el mismo nombre
+  const existingCategories = await repository.findByName(pool, data.name);
+  if(existingCategories.length > 0){
+    throw ApiError.conflict(`la categoria ${data.name} ya existe`);
+  }
   return repository.create(pool, data);
 }
 
@@ -24,14 +32,15 @@ async function updateCategory(id, data) {
   return repository.update(pool, id, data);
 }
 
-async function updateStatusCategory(id) {
+async function updateCategoryStatus(id, status) {
   await getCategory(id);
-  await repository.softDelete(pool, id);
+  await repository.updateStatus(pool, id, !status);
 }
 
-async function deleteCategory(id){
+async function deleteCategory(id) {
+  await getCategory(id);
   const [categories, products] = await Promise.all([
-    repository.findCategories(pool, id),
+    repository.findOtherCategories(pool, id),
     findByCategorie(pool, id)
   ]);
   if(products.length > 0){
@@ -41,12 +50,21 @@ async function deleteCategory(id){
       products: products
     }
   }
-  return repository.categorieDelete(pool, id);
+  try {
+    return await repository.remove(pool, id);
+  } catch (err) {
+    if (err.code === 'ER_ROW_IS_REFERENCED_2') {
+      throw ApiError.conflict('La categoría tiene productos asociados');
+    }
+    throw err;
+  }
 }
 
-module.exports = { 
-  listCategories, 
-  getCategory, 
-  createCategory, 
+module.exports = {
+  listCategories,
+  getCategory,
+  createCategory,
   updateCategory,
-  deleteCategory };
+  updateCategoryStatus,
+  deleteCategory 
+};

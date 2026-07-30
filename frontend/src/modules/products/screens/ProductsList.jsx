@@ -26,7 +26,9 @@ export default function ProductsList() {
   const [pendingDelete, setPendingDelete] = useState(null);
 
   useEffect(() => {
-    listCategories().then(setCategories).catch(() => {});
+    listCategories({ limit: 100 })
+      .then(({ data }) => setCategories(data))
+      .catch(() => {});
     listSuppliers().then(setSuppliers).catch(() => {});
   }, []);
 

@@ -1,7 +1,7 @@
 import apiClient from '@shared/services/apiClient';
 
 export function listCategories(params) {
-  return apiClient.get('/categories', { params }).then((r) => r.data.data);
+  return apiClient.get('/categories', { params }).then((r) => r.data);
 }
 
 export function getCategory(id) {
@@ -18,4 +18,8 @@ export function updateCategory(id, payload) {
 
 export function deleteCategory(id) {
   return apiClient.delete(`/categories/${id}`).then((r) => r.data?.data ?? null);
+}
+
+export function updateCategoryStatus(id, status) {
+  return apiClient.patch(`/categories/${id}/status`, { status });
 }
