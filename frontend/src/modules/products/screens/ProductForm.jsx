@@ -76,7 +76,7 @@ export default function ProductForm() {
       if (isEdit) {
         await updateProduct(id, payload);
       } else {
-        await createProduct(form);
+        await createProduct(payload);
       }
       pushToast('Producto guardado con éxito', 'success');
       navigate('/products');
@@ -94,7 +94,7 @@ export default function ProductForm() {
       <form className="form" onSubmit={handleSubmit}>
         <div className="field">
           <label htmlFor="category_id">Categoría</label>
-          <select id="category_id" value={form.category_id} onChange={handleChange('category_id')} required>
+          <select id="category_id" value={form.category_id} onChange={handleChange('category_id')}>
             <option value="">Selecciona una categoría</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
@@ -116,7 +116,7 @@ export default function ProductForm() {
         </div>
         <div className="field">
           <label htmlFor="code">Código</label>
-          <input id="code" value={form.code} onChange={handleChange('code')} required />
+          <input id="code" value={form.code} onChange={handleChange('code')} />
         </div>
         <div className="field">
           <label htmlFor="barcode">Código de barras</label>
@@ -151,7 +151,6 @@ export default function ProductForm() {
             min="0"
             value={form.sale_price}
             onChange={handleChange('sale_price')}
-            required
           />
         </div>
         {isEdit && (

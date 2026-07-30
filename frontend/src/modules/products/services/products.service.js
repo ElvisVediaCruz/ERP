@@ -24,6 +24,10 @@ export function deleteProduct(id) {
   return apiClient.delete(`/products/${id}`);
 }
 
+export function updateProductStatus(id, status) {
+  return apiClient.patch(`/products/${id}/status`, { status });
+}
+
 export function reassignProductsCategory(data) {
   return apiClient.patch('/products/reassign-category', data).then((r) => r.data.data);
 }

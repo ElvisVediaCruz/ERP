@@ -68,52 +68,75 @@ async function create(db, data) {
   const [result] = await db.execute(
     `INSERT INTO products
       (category_id, supplier_id, code, barcode, name, description,
-       purchase_price, sale_price, stock, minimum_stock, expiration_date, image)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       purchase_price, sale_price, stock, minimum_stock, expiration_date, image, status)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
-      data.category_id,
+      data.category_id ?? null,
       data.supplier_id ?? null,
-      data.code,
+      data.code ?? null,
       data.barcode ?? null,
       data.name,
       data.description ?? null,
       data.purchase_price,
-      data.sale_price,
+      data.sale_price ?? null,
       data.stock ?? 0,
       data.minimum_stock ?? 0,
       data.expiration_date ?? null,
       data.image ?? null,
+      null,
     ]
   );
   return findById(db, result.insertId);
 }
 
 async function update(db, id, data) {
+  const values = [
+    data.category_id ?? null,
+    data.supplier_id ?? null,
+    data.code ?? null,
+    data.barcode ?? null,
+    data.name,
+    data.description ?? null,
+    data.purchase_price,
+    data.sale_price ?? null,
+    data.minimum_stock ?? 0,
+    data.expiration_date ?? null,
+    data.image ?? null,
+  ];
   await db.execute(
     `UPDATE products SET
       category_id = ?, supplier_id = ?, code = ?, barcode = ?, name = ?, description = ?,
-      purchase_price = ?, sale_price = ?, minimum_stock = ?, expiration_date = ?, image = ?
-     WHERE id = ?`,
-    [
-      data.category_id,
-      data.supplier_id ?? null,
-      data.code,
-      data.barcode ?? null,
-      data.name,
-      data.description ?? null,
-      data.purchase_price,
-      data.sale_price,
-      data.minimum_stock ?? 0,
-      data.expiration_date ?? null,
-      data.image ?? null,
-      id,
-    ]
+      purchase_price = ?, sale_price = ?, minimum_stock = ?, expiration_date = ?, image = ?, updated_at = now()
+     WHERE id = ?
+     AND (
+       NOT (category_id <=> ?) OR NOT (supplier_id <=> ?) OR NOT (code <=> ?) OR NOT (barcode <=> ?) OR
+       NOT (name <=> ?) OR NOT (description <=> ?) OR NOT (purchase_price <=> ?) OR NOT (sale_price <=> ?) OR
+       NOT (minimum_stock <=> ?) OR NOT (expiration_date <=> ?) OR NOT (image <=> ?)
+     )`,
+    [...values, id, ...values]
   );
   return findById(db, id);
 }
 
-async function softDelete(db, id) {
-  const [result] = await db.execute('UPDATE products SET status = FALSE WHERE id = ?', [id]);
+async function updateStatus(db, id, status) {
+  const [result] = await db.execute('UPDATE products SET status = ? WHERE id = ?', [status, id]);
+  return result.affectedRows === 1;
+}
+
+async function hasRelatedRecords(db, id) {
+  const [rows] = await db.query(
+    `SELECT
+      (SELECT COUNT(*) FROM sale_details WHERE product_id = ?) AS sales,
+      (SELECT COUNT(*) FROM purchase_details WHERE product_id = ?) AS purchases,
+      (SELECT COUNT(*) FROM inventory_movements WHERE product_id = ?) AS movements`,
+    [id, id, id]
+  );
+  const { sales, purchases, movements } = rows[0];
+  return sales > 0 || purchases > 0 || movements > 0;
+}
+
+async function remove(db, id) {
+  const [result] = await db.execute('DELETE FROM products WHERE id = ?', [id]);
   return result.affectedRows === 1;
 }
 
@@ -162,7 +185,9 @@ module.exports = {
   findByIdForUpdate,
   create,
   update,
-  softDelete,
+  updateStatus,
+  hasRelatedRecords,
+  remove,
   decrementStock,
   incrementStock,
   updateCategoryNoMatching,

@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Package } from 'lucide-react';
-import { listProducts, deleteProduct } from '../services/products.service';
+import { listProducts, deleteProduct, updateProductStatus } from '../services/products.service';
 import { listCategories } from '@modules/categories/services/categories.service';
 import { listSuppliers } from '@modules/suppliers/services/suppliers.service';
 import ErrorBanner from '@shared/components/common/ErrorBanner';
 import LoadingSpinner from '@shared/components/common/LoadingSpinner';
 import ConfirmDialog from '@shared/components/common/ConfirmDialog';
 import EmptyState from '@shared/components/common/EmptyState';
+import ToggleSwitch from '@shared/components/common/ToggleSwitch';
 import { useNotifications } from '@shared/context/NotificationContext';
 
 const emptyFilters = { category_id: '', supplier_id: '', status: '', search: '' };
@@ -24,6 +25,7 @@ export default function ProductsList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [pendingDelete, setPendingDelete] = useState(null);
+  const [togglingId, setTogglingId] = useState(null);
 
   useEffect(() => {
     listCategories({ limit: 100 })
@@ -68,6 +70,19 @@ export default function ProductsList() {
     } catch (err) {
       setError(err);
       setPendingDelete(null);
+    }
+  };
+
+  const handleToggleStatus = async (product) => {
+    setTogglingId(product.id);
+    try {
+      await updateProductStatus(product.id, Boolean(product.status));
+      pushToast(product.status ? 'Producto desactivado' : 'Producto activado', 'success');
+      load();
+    } catch (err) {
+      pushToast('No se pudo actualizar el estado del producto', 'error');
+    } finally {
+      setTogglingId(null);
     }
   };
 
@@ -155,7 +170,14 @@ export default function ProductsList() {
                     {product.stock}
                   </td>
                   <td>{product.minimum_stock}</td>
-                  <td>{product.status ? 'Activo' : 'Inactivo'}</td>
+                  <td>
+                    <ToggleSwitch
+                      checked={product.status}
+                      disabled={togglingId === product.id}
+                      onChange={() => handleToggleStatus(product)}
+                      label={product.status ? 'Desactivar producto' : 'Activar producto'}
+                    />
+                  </td>
                   <td className="actions">
                     <Link className="btn-link" to={`/products/${product.id}/edit`}>
                       Editar
@@ -191,6 +213,7 @@ export default function ProductsList() {
       <ConfirmDialog
         open={!!pendingDelete}
         message={`¿Eliminar el producto "${pendingDelete?.name}"?`}
+        warning="Esta acción no se puede deshacer."
         onConfirm={handleDelete}
         onCancel={() => setPendingDelete(null)}
       />

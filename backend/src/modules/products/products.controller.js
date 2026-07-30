@@ -31,9 +31,14 @@ const remove = asyncHandler(async (req, res) => {
   res.status(204).send();
 });
 
+const updateStatus = asyncHandler(async (req, res) => {
+  await service.updateProductStatus(req.params.id, req.body.status);
+  res.status(204).send();
+});
+
 const reassignCategory = asyncHandler(async (req, res) => {
   const affected = await service.updateProductsCategory(req.body);
   res.json({ data: { affected } });
 });
 
-module.exports = { list, lowStock, getById, create, update, remove, reassignCategory };
+module.exports = { list, lowStock, getById, create, update, remove, updateStatus, reassignCategory };

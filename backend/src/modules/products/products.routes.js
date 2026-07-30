@@ -7,6 +7,7 @@ const {
   listQuerySchema,
   idParamsSchema,
   reassignCategorySchema,
+  statusSchema,
 } = require('./products.validation');
 
 const router = Router();
@@ -18,6 +19,7 @@ router.patch('/reassign-category', validate(reassignCategorySchema), controller.
 router.get('/:id', validate(idParamsSchema, 'params'), controller.getById);
 router.post('/', validate(createSchema), controller.create);
 router.put('/:id', validate(idParamsSchema, 'params'), validate(updateSchema), controller.update);
+router.patch('/:id/status', validate(idParamsSchema, 'params'), validate(statusSchema), controller.updateStatus);
 router.delete('/:id', validate(idParamsSchema, 'params'), controller.remove);
 
 module.exports = router;

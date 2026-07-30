@@ -1,14 +1,27 @@
 const { z } = require('zod');
 
+const optionalPositiveInt = z.preprocess(
+  (v) => (v === '' ? undefined : v),
+  z.coerce.number().int().positive().optional()
+);
+
+const optionalTrimmedString = (max) =>
+  z.preprocess((v) => (v === '' ? undefined : v), z.string().trim().max(max).optional());
+
+const optionalNonnegativeNumber = z.preprocess(
+  (v) => (v === '' ? undefined : v),
+  z.coerce.number().nonnegative().optional()
+);
+
 const createSchema = z.object({
-  category_id: z.coerce.number().int().positive(),
-  supplier_id: z.coerce.number().int().positive().optional(),
-  code: z.string().trim().min(1).max(50),
-  barcode: z.string().trim().max(100).optional(),
+  category_id: optionalPositiveInt,
+  supplier_id: optionalPositiveInt,
+  code: optionalTrimmedString(50),
+  barcode: optionalTrimmedString(50),
   name: z.string().trim().min(1).max(150),
-  description: z.string().trim().max(65535).optional(),
+  description: optionalTrimmedString(100),
   purchase_price: z.coerce.number().nonnegative(),
-  sale_price: z.coerce.number().nonnegative(),
+  sale_price: optionalNonnegativeNumber,
   stock: z.coerce.number().int().nonnegative().optional(),
   minimum_stock: z.coerce.number().int().nonnegative().optional(),
   expiration_date: z.string().trim().optional(),
@@ -36,10 +49,15 @@ const reassignCategorySchema = z
   .record(z.coerce.number().int().positive())
   .refine((data) => Object.keys(data).length > 0, 'Debe incluir al menos un producto');
 
+const statusSchema = z.object({
+  status: z.boolean(),
+});
+
 module.exports = {
   createSchema,
   updateSchema,
   listQuerySchema,
   idParamsSchema,
   reassignCategorySchema,
+  statusSchema,
 };

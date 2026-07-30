@@ -6,9 +6,11 @@ const categoriesRepository = require('../categories/categories.repository');
 const suppliersRepository = require('../suppliers/suppliers.repository');
 
 async function assertReferencesExist({ category_id, supplier_id }) {
-  const categoryExists = await categoriesRepository.exists(pool, category_id);
-  if (!categoryExists) {
-    throw ApiError.badRequest(`La categoría ${category_id} no existe o está inactiva`);
+  if (category_id !== undefined) {
+    const categoryExists = await categoriesRepository.exists(pool, category_id);
+    if (!categoryExists) {
+      throw ApiError.badRequest(`La categoría ${category_id} no existe o está inactiva`);
+    }
   }
   if (supplier_id !== undefined) {
     const supplierExists = await suppliersRepository.exists(pool, supplier_id);
@@ -55,7 +57,25 @@ async function updateProduct(id, data) {
 
 async function deleteProduct(id) {
   await getProduct(id);
-  await repository.softDelete(pool, id);
+  const hasRelated = await repository.hasRelatedRecords(pool, id);
+  if (hasRelated) {
+    throw ApiError.conflict(
+      'No se puede eliminar el producto: tiene compras, ventas o movimientos de inventario asociados. Podés desactivarlo en su lugar.'
+    );
+  }
+  try {
+    return await repository.remove(pool, id);
+  } catch (err) {
+    if (err.code === 'ER_ROW_IS_REFERENCED_2') {
+      throw ApiError.conflict('No se puede eliminar el producto: tiene registros asociados.');
+    }
+    throw err;
+  }
+}
+
+async function updateProductStatus(id, status) {
+  await getProduct(id);
+  await repository.updateStatus(pool, id, !status);
 }
 
 async function updateProductsCategory(data) {
@@ -75,5 +95,6 @@ module.exports = {
   createProduct,
   updateProduct,
   deleteProduct,
+  updateProductStatus,
   updateProductsCategory,
 };
