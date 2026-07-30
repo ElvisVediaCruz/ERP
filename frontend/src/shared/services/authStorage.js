@@ -1,0 +1,14 @@
+const KEY = 'inventario:auth';
+
+export function getAuth() {
+  const raw = localStorage.getItem(KEY);
+  return raw ? JSON.parse(raw) : null;
+}
+
+export function setAuth(auth) {
+  localStorage.setItem(KEY, JSON.stringify(auth));
+}
+
+export function clearAuth() {
+  localStorage.removeItem(KEY);
+}
