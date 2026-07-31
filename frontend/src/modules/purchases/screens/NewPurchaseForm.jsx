@@ -2,12 +2,11 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPurchase } from '../services/purchases.service';
 import { listSuppliers } from '@modules/suppliers/services/suppliers.service';
-import { listProducts } from '@modules/products/services/products.service';
 import { useUser } from '@shared/context/UserContext';
 import { useNotifications } from '@shared/context/NotificationContext';
 import ErrorBanner from '@shared/components/common/ErrorBanner';
-
-const emptyItem = { product_id: '', quantity: 1, purchase_price: '' };
+import ProductAutocomplete from '@shared/components/common/ProductAutocomplete';
+import QuickAddProductDialog from './QuickAddProductDialog';
 
 export default function NewPurchaseForm() {
   const navigate = useNavigate();
@@ -15,11 +14,13 @@ export default function NewPurchaseForm() {
   const { pushToast } = useNotifications();
 
   const [suppliers, setSuppliers] = useState([]);
-  const [products, setProducts] = useState([]);
   const [supplierId, setSupplierId] = useState('');
   const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [purchaseDate, setPurchaseDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [description, setDescription] = useState('');
-  const [items, setItems] = useState([{ ...emptyItem }]);
+  const [items, setItems] = useState([]);
+  const [searchKey, setSearchKey] = useState(0);
+  const [showNewProductModal, setShowNewProductModal] = useState(false);
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -27,26 +28,31 @@ export default function NewPurchaseForm() {
     listSuppliers({ status: 'true', limit: 100 })
       .then(({ data }) => setSuppliers(data))
       .catch(() => {});
-    listProducts({ status: 'true', limit: 100 })
-      .then(({ data }) => setProducts(data))
-      .catch(() => {});
   }, []);
 
-  const addItem = () => setItems([...items, { ...emptyItem }]);
   const removeItem = (index) => setItems(items.filter((_, i) => i !== index));
 
   const updateItem = (index, field, value) => {
-    setItems(
-      items.map((item, i) => {
-        if (i !== index) return item;
-        const next = { ...item, [field]: value };
-        if (field === 'product_id') {
-          const product = products.find((p) => String(p.id) === String(value));
-          next.purchase_price = product ? product.purchase_price : '';
-        }
-        return next;
-      })
-    );
+    setItems(items.map((item, i) => (i === index ? { ...item, [field]: value } : item)));
+  };
+
+  const addProduct = (product) => {
+    setItems([
+      ...items,
+      {
+        product_id: product.id,
+        product_name: product.name,
+        product_code: product.code ?? '',
+        quantity: 1,
+        purchase_price: product.purchase_price ?? '',
+      },
+    ]);
+    setSearchKey((k) => k + 1);
+  };
+
+  const handleProductCreated = (product) => {
+    addProduct(product);
+    setShowNewProductModal(false);
   };
 
   const total = items.reduce(
@@ -70,6 +76,7 @@ export default function NewPurchaseForm() {
         supplier_id: Number(supplierId),
         user_id: user.id,
         invoice_number: invoiceNumber || undefined,
+        purchase_date: purchaseDate || undefined,
         description: description || undefined,
         items: validItems.map((item) => ({
           product_id: Number(item.product_id),
@@ -91,111 +98,135 @@ export default function NewPurchaseForm() {
       <h2>Nueva compra</h2>
       <ErrorBanner error={error} />
 
-      <form className="form" style={{ maxWidth: 800 }} onSubmit={handleSubmit}>
-        <div className="field">
-          <label htmlFor="supplier_id">Proveedor</label>
-          <select
-            id="supplier_id"
-            value={supplierId}
-            onChange={(e) => setSupplierId(e.target.value)}
-            required
-          >
-            <option value="">Selecciona un proveedor</option>
-            {suppliers.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.company}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="field">
-          <label htmlFor="invoice_number">Número de factura</label>
-          <input id="invoice_number" value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} />
-        </div>
-        <div className="field">
-          <label htmlFor="description">Notas</label>
-          <textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} rows={2} />
-        </div>
+      <form className="line-items-layout" onSubmit={handleSubmit}>
+        <div className="line-items-main">
+          <div className="line-items-top-fields">
+            <div className="field">
+              <label htmlFor="supplier_id">Proveedor</label>
+              <select
+                id="supplier_id"
+                value={supplierId}
+                onChange={(e) => setSupplierId(e.target.value)}
+                required
+              >
+                <option value="">Selecciona un proveedor</option>
+                {suppliers.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.company}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="field">
+              <label htmlFor="invoice_number">Número de factura</label>
+              <input id="invoice_number" value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} />
+            </div>
+            <div className="field">
+              <label htmlFor="purchase_date">Fecha de compra</label>
+              <input
+                id="purchase_date"
+                type="date"
+                value={purchaseDate}
+                onChange={(e) => setPurchaseDate(e.target.value)}
+              />
+            </div>
+          </div>
 
-        <table className="items-table">
-          <thead>
-            <tr>
-              <th>Producto</th>
-              <th>Cantidad</th>
-              <th>Precio de compra</th>
-              <th>Subtotal</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item, index) => (
-              <tr key={index}>
-                <td>
-                  <select
-                    value={item.product_id}
-                    onChange={(e) => updateItem(index, 'product_id', e.target.value)}
-                  >
-                    <option value="">Selecciona un producto</option>
-                    {products.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
-                </td>
-                <td>
-                  <input
-                    type="number"
-                    min="1"
-                    value={item.quantity}
-                    onChange={(e) => updateItem(index, 'quantity', e.target.value)}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={item.purchase_price}
-                    onChange={(e) => updateItem(index, 'purchase_price', e.target.value)}
-                  />
-                </td>
-                <td>{((Number(item.quantity) || 0) * (Number(item.purchase_price) || 0)).toFixed(2)}</td>
-                <td>
-                  <button
-                    type="button"
-                    className="btn-link"
-                    style={{ color: 'var(--color-danger)' }}
-                    onClick={() => removeItem(index)}
-                    disabled={items.length === 1}
-                  >
-                    Quitar
-                  </button>
-                </td>
+          <div className="field">
+            <label htmlFor="description">Notas</label>
+            <textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} rows={4} />
+          </div>
+
+          <div className="field">
+            <label>Buscar producto</label>
+            <div style={{ display: 'flex', gap: '0.4rem' }}>
+              <ProductAutocomplete key={searchKey} value="" onSelect={addProduct} />
+              <button type="button" className="btn" onClick={() => setShowNewProductModal(true)}>
+                + Nuevo producto
+              </button>
+            </div>
+          </div>
+
+          <table className="items-table">
+            <thead>
+              <tr>
+                <th>SKU</th>
+                <th>Nombre del producto</th>
+                <th>Precio de compra</th>
+                <th>Cantidad</th>
+                <th></th>
               </tr>
-            ))}
-            <tr className="totals-row">
-              <td colSpan={3}>Total (vista previa)</td>
-              <td colSpan={2}>{total.toFixed(2)}</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div>
-          <button type="button" className="btn" onClick={addItem}>
-            + Agregar línea
-          </button>
+            </thead>
+            <tbody>
+              {items.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="hint">
+                    Agrega productos con el buscador de arriba.
+                  </td>
+                </tr>
+              )}
+              {items.map((item, index) => (
+                <tr key={index}>
+                  <td>{item.product_code}</td>
+                  <td>{item.product_name}</td>
+                  <td>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={item.purchase_price}
+                      onChange={(e) => updateItem(index, 'purchase_price', e.target.value)}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="number"
+                      min="1"
+                      value={item.quantity}
+                      onChange={(e) => updateItem(index, 'quantity', e.target.value)}
+                    />
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      className="btn-link"
+                      style={{ color: 'var(--color-danger)' }}
+                      onClick={() => removeItem(index)}
+                    >
+                      Quitar
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
 
-        <div className="form-actions">
-          <button type="submit" className="btn btn-primary" disabled={submitting}>
-            {submitting ? 'Guardando...' : 'Registrar compra'}
-          </button>
-          <button type="button" className="btn" onClick={() => navigate('/purchases')}>
-            Cancelar
-          </button>
-        </div>
+        <aside className="line-items-summary card">
+          <h3>Resumen de compras</h3>
+          <p>
+            Productos: <strong>{items.length}</strong>
+          </p>
+          <p>
+            Total: <strong>{total.toFixed(2)}</strong>
+          </p>
+          <div className="form-actions">
+            <button type="submit" className="btn btn-primary" disabled={submitting}>
+              {submitting ? 'Guardando...' : 'Registrar compra'}
+            </button>
+            <button type="button" className="btn" onClick={() => navigate('/purchases')}>
+              Cancelar
+            </button>
+          </div>
+        </aside>
       </form>
+
+      {showNewProductModal && (
+        <QuickAddProductDialog
+          onClose={() => setShowNewProductModal(false)}
+          onCreated={handleProductCreated}
+        />
+      )}
     </div>
   );
 }

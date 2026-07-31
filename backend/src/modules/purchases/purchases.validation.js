@@ -11,6 +11,7 @@ const createSchema = z.object({
   supplier_id: z.coerce.number().int().positive(),
   user_id: z.coerce.number().int().positive().optional(),
   invoice_number: z.string().trim().max(100).optional(),
+  purchase_date: z.coerce.date().optional(),
   description: z.string().trim().max(255).optional(),
   items: z.array(itemSchema).min(1),
 });

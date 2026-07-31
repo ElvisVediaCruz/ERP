@@ -1,8 +1,8 @@
-async function create(conn, { supplier_id, user_id, invoice_number, total, description }) {
+async function create(conn, { supplier_id, user_id, invoice_number, purchase_date, total, description }) {
   const [result] = await conn.execute(
     `INSERT INTO purchases (supplier_id, user_id, invoice_number, purchase_date, total, description)
-     VALUES (?, ?, ?, NOW(), ?, ?)`,
-    [supplier_id, user_id, invoice_number ?? null, total, description ?? null]
+     VALUES (?, ?, ?, COALESCE(?, NOW()), ?, ?)`,
+    [supplier_id, user_id, invoice_number ?? null, purchase_date ?? null, total, description ?? null]
   );
   return result.insertId;
 }

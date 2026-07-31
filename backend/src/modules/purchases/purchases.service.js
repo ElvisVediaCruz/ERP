@@ -16,10 +16,12 @@ async function createPurchase(payload) {
   if (!userExists) {
     throw ApiError.badRequest(`El usuario ${userId} no existe o está inactivo`);
   }
-
-  const supplierExists = await suppliersRepository.exists(pool, payload.supplier_id);
-  if (!supplierExists) {
-    throw ApiError.badRequest(`El proveedor ${payload.supplier_id} no existe o está inactivo`);
+  //verifica si existe el proveedor y si esta activo
+  if (payload.supplier_id !== undefined){
+    const supplierExists = await suppliersRepository.exists(pool, payload.supplier_id);
+    if (!supplierExists) {
+      throw ApiError.badRequest(`El proveedor ${payload.supplier_id} no existe o está inactivo`);
+    }
   }
 
   return withTransaction(pool, async (conn) => {
@@ -28,7 +30,7 @@ async function createPurchase(payload) {
 
     for (const item of payload.items) {
       const product = await productsRepository.findByIdForUpdate(conn, item.product_id);
-      if (!product || !product.status) {
+      if (!product) {
         throw ApiError.notFound(`Producto ${item.product_id} no existe o está inactivo`);
       }
       const subtotal = item.purchase_price * item.quantity;
@@ -40,6 +42,7 @@ async function createPurchase(payload) {
       supplier_id: payload.supplier_id,
       user_id: userId,
       invoice_number: payload.invoice_number,
+      purchase_date: payload.purchase_date,
       total,
       description: payload.description,
     });
