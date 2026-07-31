@@ -7,11 +7,11 @@ async function create(conn, { receipt_number, user_id, customer_id, total, payme
   return result.insertId;
 }
 
-async function createDetail(conn, { sale_id, product_id, quantity, sale_price, original_price, subtotal }) {
+async function createDetail(conn, { sale_id, product_id, quantity, sale_price, subtotal }) {
   await conn.execute(
-    `INSERT INTO sale_details (sale_id, product_id, quantity, sale_price, original_price, subtotal)
-     VALUES (?, ?, ?, ?, ?, ?)`,
-    [sale_id, product_id, quantity, sale_price, original_price, subtotal]
+    `INSERT INTO sale_details (sale_id, product_id, quantity, sale_price, subtotal)
+     VALUES (?, ?, ?, ?, ?)`,
+    [sale_id, product_id, quantity, sale_price, subtotal]
   );
 }
 
