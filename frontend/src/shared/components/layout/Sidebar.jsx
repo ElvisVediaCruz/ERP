@@ -1,10 +1,11 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Tags, Truck, Package, ShoppingCart, Receipt, Users } from 'lucide-react';
+import { LayoutDashboard, Tags, Truck, Package, ShoppingCart, Receipt, Users, CreditCard } from 'lucide-react';
 import { useUser } from '@shared/context/UserContext';
 
 const allLinks = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'vendedor'] },
   { to: '/categories', label: 'Categorías', icon: Tags, roles: ['admin'] },
+  { to: '/payment-methods', label: 'Métodos de pago', icon: CreditCard, roles: ['admin'] },
   { to: '/suppliers', label: 'Proveedores', icon: Truck, roles: ['admin'] },
   { to: '/products', label: 'Productos', icon: Package, roles: ['admin'] },
   { to: '/purchases', label: 'Compras', icon: ShoppingCart, roles: ['admin'] },

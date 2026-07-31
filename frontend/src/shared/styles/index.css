@@ -573,6 +573,89 @@ input, select, textarea {
   width: 100%;
 }
 
+.line-items-layout {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  max-width: none;
+}
+
+.line-items-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.line-items-top-fields {
+  display: flex;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.line-items-top-fields .field {
+  flex: 1;
+  min-width: 180px;
+}
+
+.line-items-summary {
+  width: 280px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 1rem;
+}
+
+.line-items-summary h3 {
+  margin-top: 0;
+}
+
+@media (max-width: 768px) {
+  .line-items-layout {
+    flex-direction: column;
+  }
+
+  .line-items-summary {
+    width: 100%;
+    position: static;
+  }
+}
+
+.autocomplete {
+  position: relative;
+}
+
+.autocomplete input {
+  width: 100%;
+}
+
+.autocomplete-list {
+  position: absolute;
+  top: calc(100% + 0.2rem);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  max-height: 220px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0.25rem 0;
+  list-style: none;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-base);
+  box-shadow: var(--shadow-md);
+}
+
+.autocomplete-item {
+  padding: 0.45rem 0.75rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.autocomplete-item:hover {
+  background: var(--color-brand-surface);
+}
+
 .totals-row td {
   font-weight: 600;
 }

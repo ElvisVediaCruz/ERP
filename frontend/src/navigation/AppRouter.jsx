@@ -13,6 +13,9 @@ import DashboardScreen from '@modules/dashboard/screens/DashboardScreen';
 import CategoriesList from '@modules/categories/screens/CategoriesList';
 import CategoryForm from '@modules/categories/screens/CategoryForm';
 
+import PaymentMethodsList from '@modules/payment-methods/screens/PaymentMethodsList';
+import PaymentMethodForm from '@modules/payment-methods/screens/PaymentMethodForm';
+
 import SuppliersList from '@modules/suppliers/screens/SuppliersList';
 import SupplierForm from '@modules/suppliers/screens/SupplierForm';
 
@@ -55,6 +58,10 @@ export default function AppRouter() {
                   <Route path="categories" element={<CategoriesList />} />
                   <Route path="categories/new" element={<CategoryForm />} />
                   <Route path="categories/:id/edit" element={<CategoryForm />} />
+
+                  <Route path="payment-methods" element={<PaymentMethodsList />} />
+                  <Route path="payment-methods/new" element={<PaymentMethodForm />} />
+                  <Route path="payment-methods/:id/edit" element={<PaymentMethodForm />} />
 
                   <Route path="suppliers" element={<SuppliersList />} />
                   <Route path="suppliers/new" element={<SupplierForm />} />
