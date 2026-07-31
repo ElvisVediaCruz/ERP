@@ -11,6 +11,11 @@ const lowStock = asyncHandler(async (req, res) => {
   res.json({ data });
 });
 
+const search = asyncHandler(async (req, res) => {
+  const data = await service.searchProducts(req.query.search, req.query.type);
+  res.json({ data });
+});
+
 const getById = asyncHandler(async (req, res) => {
   const data = await service.getProduct(req.params.id);
   res.json({ data });
@@ -41,4 +46,4 @@ const reassignCategory = asyncHandler(async (req, res) => {
   res.json({ data: { affected } });
 });
 
-module.exports = { list, lowStock, getById, create, update, remove, updateStatus, reassignCategory };
+module.exports = { list, lowStock, search, getById, create, update, remove, updateStatus, reassignCategory };

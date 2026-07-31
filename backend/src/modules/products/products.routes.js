@@ -6,6 +6,7 @@ const {
   updateSchema,
   listQuerySchema,
   idParamsSchema,
+  searchQuerySchema,
   reassignCategorySchema,
   statusSchema,
 } = require('./products.validation');
@@ -13,8 +14,9 @@ const {
 const router = Router();
 
 router.get('/', validate(listQuerySchema, 'query'), controller.list);
-// Debe ir antes de "/:id" para que Express no interprete "low-stock" como un id.
+// Deben ir antes de "/:id" para que Express no interprete "low-stock"/"search" como un id.
 router.get('/low-stock', controller.lowStock);
+router.get('/search', validate(searchQuerySchema, 'query'), controller.search);
 router.patch('/reassign-category', validate(reassignCategorySchema), controller.reassignCategory);
 router.get('/:id', validate(idParamsSchema, 'params'), controller.getById);
 router.post('/', validate(createSchema), controller.create);

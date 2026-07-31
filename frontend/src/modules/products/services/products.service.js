@@ -8,6 +8,10 @@ export function listLowStock() {
   return apiClient.get('/products/low-stock').then((r) => r.data.data);
 }
 
+export function searchProducts(search, type) {
+  return apiClient.get('/products/search', { params: { search, type } }).then((r) => r.data.data);
+}
+
 export function getProduct(id) {
   return apiClient.get(`/products/${id}`).then((r) => r.data.data);
 }

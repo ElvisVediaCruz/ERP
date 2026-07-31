@@ -64,6 +64,19 @@ async function findByIdForUpdate(conn, id) {
   return rows[0] ?? null;
 }
 
+async function findProductsFiltered(conn, search, type) {
+  const clauses = ['status = TRUE', '(name LIKE ? OR code LIKE ?)'];
+  const params = [`%${search}%`, `%${search}%`];
+  if (type === 'sale') {
+    clauses.push('sale_price IS NOT NULL');
+  }
+  const [rows] = await conn.execute(
+    `SELECT id, name, code, purchase_price, sale_price FROM products WHERE ${clauses.join(' AND ')}`,
+    params
+  );
+  return rows;
+}
+
 async function create(db, data) {
   const [result] = await db.execute(
     `INSERT INTO products
@@ -83,7 +96,7 @@ async function create(db, data) {
       data.minimum_stock ?? 0,
       data.expiration_date ?? null,
       data.image ?? null,
-      null,
+      false,
     ]
   );
   return findById(db, result.insertId);
@@ -183,6 +196,7 @@ module.exports = {
   findById,
   findByCategorie,
   findByIdForUpdate,
+  findProductsFiltered,
   create,
   update,
   updateStatus,

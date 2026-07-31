@@ -38,6 +38,10 @@ async function listLowStock() {
   return repository.findLowStock(pool);
 }
 
+async function searchProducts(search, type) {
+  return repository.findProductsFiltered(pool, search, type);
+}
+
 async function getProduct(id) {
   const product = await repository.findById(pool, id);
   if (!product) throw ApiError.notFound(`Producto ${id} no encontrado`);
@@ -91,6 +95,7 @@ async function updateProductsCategory(data) {
 module.exports = {
   listProducts,
   listLowStock,
+  searchProducts,
   getProduct,
   createProduct,
   updateProduct,

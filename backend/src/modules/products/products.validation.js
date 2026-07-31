@@ -45,6 +45,11 @@ const idParamsSchema = z.object({
   id: z.coerce.number().int().positive(),
 });
 
+const searchQuerySchema = z.object({
+  search: z.string().trim().min(1),
+  type: z.enum(['all', 'sale']).optional(),
+});
+
 const reassignCategorySchema = z
   .record(z.coerce.number().int().positive())
   .refine((data) => Object.keys(data).length > 0, 'Debe incluir al menos un producto');
@@ -58,6 +63,7 @@ module.exports = {
   updateSchema,
   listQuerySchema,
   idParamsSchema,
+  searchQuerySchema,
   reassignCategorySchema,
   statusSchema,
 };
