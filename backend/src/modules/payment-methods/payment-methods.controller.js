@@ -2,7 +2,7 @@ const asyncHandler = require('../../shared/utils/asyncHandler');
 const service = require('./payment-methods.service');
 
 const list = asyncHandler(async (req, res) => {
-  const data = await service.listPaymentMethods();
+  const data = await service.listPaymentMethods(req.query);
   res.json({ data });
 });
 
@@ -26,4 +26,9 @@ const remove = asyncHandler(async (req, res) => {
   res.status(204).send();
 });
 
-module.exports = { list, getById, create, update, remove };
+const updateStatus = asyncHandler(async (req, res) => {
+  await service.updatePaymentMethodStatus(req.params.id, req.body.status);
+  res.status(204).send();
+});
+
+module.exports = { list, getById, create, update, remove, updateStatus };

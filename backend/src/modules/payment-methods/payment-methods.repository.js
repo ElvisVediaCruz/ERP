@@ -1,5 +1,9 @@
-async function findAll(db) {
-  const [rows] = await db.execute('SELECT * FROM method_payment WHERE status = TRUE ORDER BY name');
+async function findAll(db, { status } = {}) {
+  if (status === undefined) {
+    const [rows] = await db.query('SELECT * FROM method_payment ORDER BY name');
+    return rows;
+  }
+  const [rows] = await db.query('SELECT * FROM method_payment WHERE status = ? ORDER BY name', [status]);
   return rows;
 }
 
@@ -37,4 +41,9 @@ async function softDelete(db, id) {
   return result.affectedRows === 1;
 }
 
-module.exports = { findAll, findById, exists, create, update, softDelete };
+async function updateStatus(db, id, status) {
+  const [result] = await db.execute('UPDATE method_payment SET status = ? WHERE id = ?', [status, id]);
+  return result.affectedRows === 1;
+}
+
+module.exports = { findAll, findById, exists, create, update, softDelete, updateStatus };

@@ -2,8 +2,9 @@ const pool = require('../../config/db');
 const ApiError = require('../../shared/errors/ApiError');
 const repository = require('./payment-methods.repository');
 
-async function listPaymentMethods() {
-  return repository.findAll(pool);
+async function listPaymentMethods(query = {}) {
+  const status = query.status === undefined ? undefined : query.status === 'true';
+  return repository.findAll(pool, { status });
 }
 
 async function getPaymentMethod(id) {
@@ -26,10 +27,16 @@ async function deletePaymentMethod(id) {
   await repository.softDelete(pool, id);
 }
 
+async function updatePaymentMethodStatus(id, status) {
+  await getPaymentMethod(id);
+  await repository.updateStatus(pool, id, status);
+}
+
 module.exports = {
   listPaymentMethods,
   getPaymentMethod,
   createPaymentMethod,
   updatePaymentMethod,
   deletePaymentMethod,
+  updatePaymentMethodStatus,
 };

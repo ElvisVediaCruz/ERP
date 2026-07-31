@@ -11,4 +11,12 @@ const idParamsSchema = z.object({
   id: z.coerce.number().int().positive(),
 });
 
-module.exports = { createSchema, updateSchema, idParamsSchema };
+const listQuerySchema = z.object({
+  status: z.enum(['true', 'false']).optional(),
+});
+
+const statusSchema = z.object({
+  status: z.boolean(),
+});
+
+module.exports = { createSchema, updateSchema, idParamsSchema, listQuerySchema, statusSchema };
