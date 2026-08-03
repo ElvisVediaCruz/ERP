@@ -30,10 +30,7 @@ async function findById(db, id) {
 }
 
 async function search(db, name){
-  const [rows] = await db.execute(
-    `SELECT ${atributes} FROM categories WHERE name LIKE ?`,
-    [`%${name ?? ''}%`]
-  );
+  const [rows] = await db.execute('SELECT id, name FROM categories WHERE name LIKE ?', [`${name}%`]);
   return rows;
 }
 
