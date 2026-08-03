@@ -6,6 +6,7 @@ const { createSchema, updateSchema, idParamsSchema, statusSchema, listQuerySchem
 const router = Router();
 
 router.get('/', validate(listQuerySchema, 'query'), controller.list);
+router.get('/search', validate(listQuerySchema, 'query'), controller.search);
 router.get('/:id', validate(idParamsSchema, 'params'), controller.getById);
 router.post('/', validate(createSchema), controller.create);
 router.put('/:id', validate(idParamsSchema, 'params'), validate(updateSchema), controller.update);

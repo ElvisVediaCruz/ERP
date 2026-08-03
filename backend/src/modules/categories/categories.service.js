@@ -11,6 +11,10 @@ async function listCategories(query) {
   return { rows, meta: { total, page, limit } };
 }
 
+async function searchCategories(name){
+  return repository.search(pool, name);
+}
+
 async function getCategory(id) {
   const category = await repository.findById(pool, id);
   if (!category) throw ApiError.notFound(`Categoría ${id} no encontrada`);
@@ -62,6 +66,7 @@ async function deleteCategory(id) {
 
 module.exports = {
   listCategories,
+  searchCategories,
   getCategory,
   createCategory,
   updateCategory,

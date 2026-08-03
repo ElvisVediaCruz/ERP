@@ -29,6 +29,14 @@ async function findById(db, id) {
   return rows[0] ?? null;
 }
 
+async function search(db, name){
+  const [rows] = await db.execute(
+    `SELECT ${atributes} FROM categories WHERE name LIKE ?`,
+    [`%${name ?? ''}%`]
+  );
+  return rows;
+}
+
 async function exists(db, id) {
   const [rows] = await db.execute('SELECT id FROM categories WHERE id = ? AND status = TRUE', [id]);
   return rows.length > 0;
@@ -74,6 +82,7 @@ module.exports = {
   findOtherCategories,
   findById,
   findByName,
+  search,
   exists,
   create,
   update,

@@ -6,6 +6,11 @@ const list = asyncHandler(async (req, res) => {
   res.json({ data: rows, meta });
 });
 
+const search = asyncHandler(async (req, res) => {
+  const categories = await service.searchCategories(req.query.name);
+  res.json({data: categories});
+})
+
 const getById = asyncHandler(async (req, res) => {
   const data = await service.getCategory(req.params.id);
   res.json({ data });
@@ -34,4 +39,4 @@ const updateStatus = asyncHandler(async (req, res) => {
   res.status(204).send();
 });
 
-module.exports = { list, getById, create, update, remove, updateStatus };
+module.exports = { list, search, getById, create, update, remove, updateStatus };

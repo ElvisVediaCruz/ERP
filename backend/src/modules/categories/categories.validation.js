@@ -17,6 +17,7 @@ const statusSchema = z.object({
 
 const listQuerySchema = z.object({
   status: z.enum(['true', 'false']).optional(),
+  name: z.string().toLowerCase().trim().optional(),
   page: z.coerce.number().int().positive().optional(),
   limit: z.coerce.number().int().positive().max(100).optional(),
 });

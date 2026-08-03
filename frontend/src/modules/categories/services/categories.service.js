@@ -4,6 +4,10 @@ export function listCategories(params) {
   return apiClient.get('/categories', { params }).then((r) => r.data);
 }
 
+export function searchCategories(name) {
+  return apiClient.get('/categories/search', { params: { name } }).then((r) => r.data.data);
+}
+
 export function getCategory(id) {
   return apiClient.get(`/categories/${id}`).then((r) => r.data.data);
 }
